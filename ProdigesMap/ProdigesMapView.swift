@@ -17,6 +17,7 @@ struct ProdigesMapView: View {
             span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
         )
         Map(initialPosition: MapCameraPosition.region(position)) {
+            UserAnnotation()
         }
     }
 }
