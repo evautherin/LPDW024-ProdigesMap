@@ -11,7 +11,7 @@ import SwiftUI
 struct ProdigesMapApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            ProdigesMapView()
         }
     }
 }

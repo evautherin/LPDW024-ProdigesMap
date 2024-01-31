@@ -11,6 +11,8 @@
 		8FF334272B6A82B300004CE1 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FF334262B6A82B300004CE1 /* ContentView.swift */; };
 		8FF334292B6A82B500004CE1 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8FF334282B6A82B500004CE1 /* Assets.xcassets */; };
 		8FF3342C2B6A82B600004CE1 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8FF3342B2B6A82B600004CE1 /* Preview Assets.xcassets */; };
+		8FF334332B6A838A00004CE1 /* ProdigesMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FF334322B6A838A00004CE1 /* ProdigesMapView.swift */; };
+		8FF334352B6A8F1900004CE1 /* ProdigesModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FF334342B6A8F1900004CE1 /* ProdigesModel.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -19,6 +21,8 @@
 		8FF334262B6A82B300004CE1 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		8FF334282B6A82B500004CE1 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		8FF3342B2B6A82B600004CE1 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
+		8FF334322B6A838A00004CE1 /* ProdigesMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProdigesMapView.swift; sourceTree = "<group>"; };
+		8FF334342B6A8F1900004CE1 /* ProdigesModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProdigesModel.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -53,6 +57,8 @@
 			children = (
 				8FF334242B6A82B300004CE1 /* ProdigesMapApp.swift */,
 				8FF334262B6A82B300004CE1 /* ContentView.swift */,
+				8FF334322B6A838A00004CE1 /* ProdigesMapView.swift */,
+				8FF334342B6A8F1900004CE1 /* ProdigesModel.swift */,
 				8FF334282B6A82B500004CE1 /* Assets.xcassets */,
 				8FF3342A2B6A82B600004CE1 /* Preview Content */,
 			);
@@ -137,8 +143,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8FF334352B6A8F1900004CE1 /* ProdigesModel.swift in Sources */,
 				8FF334272B6A82B300004CE1 /* ContentView.swift in Sources */,
 				8FF334252B6A82B300004CE1 /* ProdigesMapApp.swift in Sources */,
+				8FF334332B6A838A00004CE1 /* ProdigesMapView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -275,6 +283,7 @@
 				DEVELOPMENT_TEAM = Z98NUU2B3L;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Location When In Use Usage Description";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -304,6 +313,7 @@
 				DEVELOPMENT_TEAM = Z98NUU2B3L;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Location When In Use Usage Description";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
