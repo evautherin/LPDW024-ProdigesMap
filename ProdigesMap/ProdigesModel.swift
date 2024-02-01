@@ -8,10 +8,13 @@
 import Foundation
 import CoreLocation
 import SwiftUI
+import AsyncAlgorithms
+import AsyncExtensions
 
 @Observable
 class ProdigesModel : NSObject {
     var name = "User"
+    var initialEvent: CLMonitor.Event?
 
     static let shared = ProdigesModel()
     let center = CLLocationCoordinate2D(latitude: 48.9355351, longitude: 2.3030026)
@@ -40,13 +43,20 @@ extension ProdigesModel : CLLocationManagerDelegate {
                 await monitor.add(condition, identifier: "Condition")
                 
                 let identifiers = await monitor.identifiers
-//                for identifier in identifiers {
-//                    print("Condition: \(identifier)")
+                for identifier in identifiers {
+                    if let record = await monitor.record(for: identifier) {
+                        initialEvent = record.lastEvent
+                    }
+                }
+//                identifiers.forEach {
+//                    print("Condition: \(await monitor.record(for: $0).debugDescription)")
 //                }
-                identifiers.forEach { print("Condition: \($0)") }
                 
                 let events = await monitor.events
-                let stateStrings = events.map { event in
+                let initialEvents = AsyncJustSequence(self.initialEvent)
+                
+                let stateStrings = chain(initialEvents, events)
+                    .map { event in
                     return switch event.state {
                     case .unknown: "unknown"
                     case .satisfied: "satisfied"

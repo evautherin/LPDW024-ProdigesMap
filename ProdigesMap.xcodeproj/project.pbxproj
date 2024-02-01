@@ -13,6 +13,8 @@
 		8FF3342C2B6A82B600004CE1 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8FF3342B2B6A82B600004CE1 /* Preview Assets.xcassets */; };
 		8FF334332B6A838A00004CE1 /* ProdigesMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FF334322B6A838A00004CE1 /* ProdigesMapView.swift */; };
 		8FF334352B6A8F1900004CE1 /* ProdigesModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FF334342B6A8F1900004CE1 /* ProdigesModel.swift */; };
+		8FF334382B6BDCBF00004CE1 /* AsyncExtensions in Frameworks */ = {isa = PBXBuildFile; productRef = 8FF334372B6BDCBF00004CE1 /* AsyncExtensions */; };
+		8FF3343B2B6BDF4100004CE1 /* AsyncAlgorithms in Frameworks */ = {isa = PBXBuildFile; productRef = 8FF3343A2B6BDF4100004CE1 /* AsyncAlgorithms */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -30,6 +32,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8FF334382B6BDCBF00004CE1 /* AsyncExtensions in Frameworks */,
+				8FF3343B2B6BDF4100004CE1 /* AsyncAlgorithms in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -89,6 +93,10 @@
 			dependencies = (
 			);
 			name = ProdigesMap;
+			packageProductDependencies = (
+				8FF334372B6BDCBF00004CE1 /* AsyncExtensions */,
+				8FF3343A2B6BDF4100004CE1 /* AsyncAlgorithms */,
+			);
 			productName = ProdigesMap;
 			productReference = 8FF334212B6A82B300004CE1 /* ProdigesMap.app */;
 			productType = "com.apple.product-type.application";
@@ -117,6 +125,10 @@
 				Base,
 			);
 			mainGroup = 8FF334182B6A82B300004CE1;
+			packageReferences = (
+				8FF334362B6BDCBF00004CE1 /* XCRemoteSwiftPackageReference "AsyncExtensions" */,
+				8FF334392B6BDF4100004CE1 /* XCRemoteSwiftPackageReference "swift-async-algorithms" */,
+			);
 			productRefGroup = 8FF334222B6A82B300004CE1 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -354,6 +366,38 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		8FF334362B6BDCBF00004CE1 /* XCRemoteSwiftPackageReference "AsyncExtensions" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sideeffect-io/AsyncExtensions";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.5.2;
+			};
+		};
+		8FF334392B6BDF4100004CE1 /* XCRemoteSwiftPackageReference "swift-async-algorithms" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/apple/swift-async-algorithms.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		8FF334372B6BDCBF00004CE1 /* AsyncExtensions */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8FF334362B6BDCBF00004CE1 /* XCRemoteSwiftPackageReference "AsyncExtensions" */;
+			productName = AsyncExtensions;
+		};
+		8FF3343A2B6BDF4100004CE1 /* AsyncAlgorithms */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8FF334392B6BDF4100004CE1 /* XCRemoteSwiftPackageReference "swift-async-algorithms" */;
+			productName = AsyncAlgorithms;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 8FF334192B6A82B300004CE1 /* Project object */;
 }
