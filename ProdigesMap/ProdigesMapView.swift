@@ -16,8 +16,13 @@ struct ProdigesMapView: View {
             center: model.center,
             span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
         )
-        Map(initialPosition: MapCameraPosition.region(position)) {
-            UserAnnotation()
+        ZStack {
+            Map(initialPosition: MapCameraPosition.region(position)) {
+                UserAnnotation() {
+    //                Text("\(model.name)")
+                }
+            }
+            Text("\(model.name)")
         }
     }
 }
