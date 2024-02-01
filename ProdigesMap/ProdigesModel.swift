@@ -24,7 +24,7 @@ class ProdigesModel : NSObject {
 }
 
 
-extension ProdigesModel: CLLocationManagerDelegate {
+extension ProdigesModel : CLLocationManagerDelegate {
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
         print("\(manager.authorizationStatus)")
         if manager.authorizationStatus == .authorizedWhenInUse {
@@ -40,7 +40,8 @@ extension ProdigesModel: CLLocationManagerDelegate {
                     print("Condition: \(identifier)")
                 }
                 
-                for try await event in await monitor.events {
+                let events = await monitor.events
+                for try await event in events {
                     print("state:\(event.state), id:\(event.identifier), date:\(event.date)")
                 }
             }
