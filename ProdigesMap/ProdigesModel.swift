@@ -53,12 +53,13 @@ extension ProdigesModel : CLLocationManagerDelegate {
 //                }
                 
                 let events = await monitor.events
-                let initialEvents = switch initialEvent {
-                case .some(let initialEvent): AsyncJustSequence(initialEvent).eraseToAnyAsyncSequence()
-                case .none: AsyncEmptySequence<CLMonitor.Event>().eraseToAnyAsyncSequence()
+                
+                let allEvents = switch initialEvent {
+                case .some(let initialEvent): chain(AsyncJustSequence(initialEvent), events).eraseToAnyAsyncSequence()
+                case .none: events.eraseToAnyAsyncSequence()
                 }
                 
-                let stateStrings = chain(initialEvents, events)
+                let stateStrings = allEvents
                     .map { event in
                     return switch event.state {
                     case .unknown: "unknown"
