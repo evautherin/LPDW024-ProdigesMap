@@ -32,7 +32,7 @@ extension ProdigesModel : CLLocationManagerDelegate {
                 let monitor = await CLMonitor("monitorName")
                 let condition = CLMonitor.CircularGeographicCondition(
                     center: center,
-                    radius: 50
+                    radius: 2000.0
                 )
                 await monitor.add(condition, identifier: "Condition")
                 
