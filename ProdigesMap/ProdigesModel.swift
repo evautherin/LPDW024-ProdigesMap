@@ -103,17 +103,26 @@ extension ProdigesModel : CLLocationManagerDelegate {
 extension ProdigesModel {
     func fetchProdige(documentId: String = "wxwZgWPu1WRwozVyjHxh") {
         let db = Firestore.firestore()
-        let docRef = db.collection("Prodiges").document(documentId)
-        
-        docRef.getDocument { document, error in
-            do {
-                if let document {
-                    let prodige = try document.data(as: Prodige.self)
-                    print("Prodige: \(prodige)")
+        db.collection("Prodiges").whereField("tracked", isEqualTo: true)
+            .addSnapshotListener { querySnapshot, error in
+                guard let documents = querySnapshot?.documents else {
+                  print("Error fetching documents: \(error!)")
+                  return
                 }
-            } catch {
-                print(error.localizedDescription)
-            }
-        }
+                let prodiges = documents.compactMap { $0["name"] }
+                print("Tracked Prodiges: \(prodiges)")
+              }
+        
+        
+//        docRef.getDocument { document, error in
+//            do {
+//                if let document {
+//                    let prodige = try document.data(as: Prodige.self)
+//                    print("Prodige: \(prodige)")
+//                }
+//            } catch {
+//                print(error.localizedDescription)
+//            }
+//        }
     }
 }
