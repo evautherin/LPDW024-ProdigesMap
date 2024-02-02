@@ -10,6 +10,7 @@ import CoreLocation
 import SwiftUI
 import AsyncAlgorithms
 import AsyncExtensions
+import FirebaseFirestore
 
 @Observable
 class ProdigesModel : NSObject {
@@ -97,4 +98,22 @@ extension ProdigesModel : CLLocationManagerDelegate {
         }
     }
 
+}
+
+extension ProdigesModel {
+    func fetchProdige(documentId: String = "wxwZgWPu1WRwozVyjHxh") {
+        let db = Firestore.firestore()
+        let docRef = db.collection("Prodiges").document(documentId)
+        
+        docRef.getDocument { document, error in
+            do {
+                if let document {
+                    let prodige = try document.data(as: Prodige.self)
+                    print("Prodige: \(prodige)")
+                }
+            } catch {
+                print(error.localizedDescription)
+            }
+        }
+    }
 }

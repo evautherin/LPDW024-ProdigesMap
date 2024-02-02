@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		8F77046D2B6CFC7B00011951 /* Prodige.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F77046C2B6CFC7B00011951 /* Prodige.swift */; };
 		8FF334252B6A82B300004CE1 /* ProdigesMapApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FF334242B6A82B300004CE1 /* ProdigesMapApp.swift */; };
 		8FF334272B6A82B300004CE1 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FF334262B6A82B300004CE1 /* ContentView.swift */; };
 		8FF334292B6A82B500004CE1 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8FF334282B6A82B500004CE1 /* Assets.xcassets */; };
@@ -46,6 +47,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		8F77046C2B6CFC7B00011951 /* Prodige.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Prodige.swift; sourceTree = "<group>"; };
 		8FF334212B6A82B300004CE1 /* ProdigesMap.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ProdigesMap.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		8FF334242B6A82B300004CE1 /* ProdigesMapApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProdigesMapApp.swift; sourceTree = "<group>"; };
 		8FF334262B6A82B300004CE1 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -120,6 +122,7 @@
 				8FF334262B6A82B300004CE1 /* ContentView.swift */,
 				8FF334322B6A838A00004CE1 /* ProdigesMapView.swift */,
 				8FF334342B6A8F1900004CE1 /* ProdigesModel.swift */,
+				8F77046C2B6CFC7B00011951 /* Prodige.swift */,
 				8FF334282B6A82B500004CE1 /* Assets.xcassets */,
 				8FF3342A2B6A82B600004CE1 /* Preview Content */,
 			);
@@ -245,6 +248,7 @@
 				8FF334272B6A82B300004CE1 /* ContentView.swift in Sources */,
 				8FF334252B6A82B300004CE1 /* ProdigesMapApp.swift in Sources */,
 				8FF334332B6A838A00004CE1 /* ProdigesMapView.swift in Sources */,
+				8F77046D2B6CFC7B00011951 /* Prodige.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

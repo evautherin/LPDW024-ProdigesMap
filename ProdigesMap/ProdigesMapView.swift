@@ -22,7 +22,12 @@ struct ProdigesMapView: View {
     //                Text("\(model.name)")
                 }
             }
-            Text("\(model.name)")
+            VStack {
+                Text("\(model.name)")
+                Button("Test") {
+                    model.fetchProdige()
+                }
+            }
         }
     }
 }

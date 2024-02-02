@@ -6,3 +6,11 @@
 //
 
 import Foundation
+import FirebaseFirestore
+
+struct Prodige : Identifiable, Codable {
+    @DocumentID var id: String?
+    let name: String
+    let position: GeoPoint
+    let tracked: Bool
+}
