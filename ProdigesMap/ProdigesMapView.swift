@@ -21,13 +21,20 @@ struct ProdigesMapView: View {
                 UserAnnotation() {
     //                Text("\(model.name)")
                 }
-            }
-            VStack {
-                Text("\(model.name)")
-                Button("Test") {
-//                    model.trackProdiges()
+                ForEach(model.prodiges) { prodige in
+                    let location = CLLocationCoordinate2D(
+                        latitude: prodige.position.latitude,
+                        longitude: prodige.position.longitude
+                    )
+                    Marker(prodige.name, systemImage: "person.circle", coordinate: location)
                 }
             }
+//            VStack {
+//                Text("\(model.name)")
+//                Button("Test") {
+//                    model.trackProdiges()
+//                }
+//            }
         }
     }
 }

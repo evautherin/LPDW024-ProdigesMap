@@ -14,6 +14,7 @@ import FirebaseFirestore
 
 @Observable
 class ProdigesModel : NSObject {
+    var prodiges = [Prodige]()
     var name = "User"
     var initialEvent: CLMonitor.Event?
 
@@ -111,8 +112,12 @@ extension ProdigesModel {
                     print("Error fetching documents: \(error!)")
                     return
                 }
-                let prodiges = documents.compactMap { $0["name"] }
-                print("Tracked Prodiges: \(prodiges)")
+                do {
+                    self.prodiges = try documents.compactMap { try $0.data(as: Prodige.self) }
+                } catch {
+                    print("Error deserializing documents: \(error)")
+                }
+                print("Tracked Prodiges: \(self.prodiges)")
             }
     }
 }
