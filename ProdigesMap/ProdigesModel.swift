@@ -26,6 +26,8 @@ class ProdigesModel : NSObject {
         
         manager.delegate = self
         manager.requestWhenInUseAuthorization()
+        
+        trackProdiges()
     }
     
 }
@@ -101,28 +103,16 @@ extension ProdigesModel : CLLocationManagerDelegate {
 }
 
 extension ProdigesModel {
-    func fetchProdige(documentId: String = "wxwZgWPu1WRwozVyjHxh") {
+    func trackProdiges() {
         let db = Firestore.firestore()
         db.collection("Prodiges").whereField("tracked", isEqualTo: true)
             .addSnapshotListener { querySnapshot, error in
                 guard let documents = querySnapshot?.documents else {
-                  print("Error fetching documents: \(error!)")
-                  return
+                    print("Error fetching documents: \(error!)")
+                    return
                 }
                 let prodiges = documents.compactMap { $0["name"] }
                 print("Tracked Prodiges: \(prodiges)")
-              }
-        
-        
-//        docRef.getDocument { document, error in
-//            do {
-//                if let document {
-//                    let prodige = try document.data(as: Prodige.self)
-//                    print("Prodige: \(prodige)")
-//                }
-//            } catch {
-//                print(error.localizedDescription)
-//            }
-//        }
+            }
     }
 }

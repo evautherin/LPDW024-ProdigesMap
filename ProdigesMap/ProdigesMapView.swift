@@ -25,7 +25,7 @@ struct ProdigesMapView: View {
             VStack {
                 Text("\(model.name)")
                 Button("Test") {
-                    model.fetchProdige()
+//                    model.trackProdiges()
                 }
             }
         }
