@@ -9,18 +9,22 @@ import SwiftUI
 import CoreLocation
 import MapKit
 
+
 struct ProdigesMapView: View {
-    var body: some View {
-        let model = ProdigesModel.shared
-        @State var position = MKCoordinateRegion(
+    let model = ProdigesModel.shared
+    @State private var newUserPresented = false
+    @State var position: MKCoordinateRegion
+    
+    init() {
+        position = MKCoordinateRegion(
             center: model.center,
             span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
         )
+    }
+
+    var body: some View {
         ZStack {
             Map(initialPosition: MapCameraPosition.region(position)) {
-                UserAnnotation() {
-    //                Text("\(model.name)")
-                }
                 ForEach(model.prodiges) { prodige in
                     let location = CLLocationCoordinate2D(
                         latitude: prodige.position.latitude,
@@ -29,12 +33,34 @@ struct ProdigesMapView: View {
                     Marker(prodige.name, systemImage: "person.circle", coordinate: location)
                 }
             }
+            VStack {
+                Spacer()
+                HStack {
+                    Spacer()
+                    Button(action: {
+                        newUserPresented.toggle()
+                    }) {
+                        Image(systemName: "plus.circle.fill")
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(width: 60, height: 60)
+                            .foregroundColor(.blue)
+                            .background(Color.white)
+                            .clipShape(Circle())
+                            .padding(.trailing)
+                            .padding(.top)
+                    }
+                }
+            }
 //            VStack {
 //                Text("\(model.name)")
 //                Button("Test") {
 //                    model.trackProdiges()
 //                }
 //            }
+        }
+        .sheet(isPresented: $newUserPresented) {
+            AddUserView()
         }
     }
 }
