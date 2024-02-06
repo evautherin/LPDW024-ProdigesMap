@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct LoginView: View {
+    let model = ProdigesModel.shared
 
     @Environment(\.dismiss) var dismiss
     @State private var name = ""
@@ -24,7 +25,25 @@ struct LoginView: View {
                     .textFieldStyle(RoundedBorderTextFieldStyle())
                 
                 Button("Se connecter") {
-                    // Logique ici
+                    let foundProdige = model.prodiges
+//                        .filter { $0.name == name }
+                        .first(where: { $0.name == name })
+                    
+                    switch foundProdige {
+                    case .none:
+                        // S'enregistrer
+                        print("*** S'enregistrer")
+                        break
+                        
+                    case .some(let foundProdige):
+                        if foundProdige.password == password {
+                            // J'ai le bon prodige
+                            print("*** J'ai le bon prodige")
+                        } else {
+                            // Le password est mauvais
+                            print("*** Le password est mauvais")
+                        }
+                    }
                 }
                 .padding()
                 .foregroundColor(.white)

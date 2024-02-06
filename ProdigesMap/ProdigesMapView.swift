@@ -25,7 +25,7 @@ struct ProdigesMapView: View {
     var body: some View {
         ZStack {
             Map(initialPosition: MapCameraPosition.region(position)) {
-                ForEach(model.prodiges) { prodige in
+                ForEach(model.trackedProdiges) { prodige in
                     let location = CLLocationCoordinate2D(
                         latitude: prodige.position.latitude,
                         longitude: prodige.position.longitude

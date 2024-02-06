@@ -15,6 +15,10 @@ import FirebaseFirestore
 @Observable
 class ProdigesModel : NSObject {
     var prodiges = [Prodige]()
+    var trackedProdiges: [Prodige] {
+//        prodiges.filter { $0.tracked }
+        prodiges.filter(\.tracked)
+    }
     var name = "User"
     var initialEvent: CLMonitor.Event?
 
@@ -106,7 +110,7 @@ extension ProdigesModel : CLLocationManagerDelegate {
 extension ProdigesModel {
     func trackProdiges() {
         let db = Firestore.firestore()
-        db.collection("Prodiges").whereField("tracked", isEqualTo: true)
+        db.collection("Prodiges") // .whereField("tracked", isEqualTo: true)
             .addSnapshotListener { querySnapshot, error in
                 guard let documents = querySnapshot?.documents else {
                     print("Error fetching documents: \(error!)")

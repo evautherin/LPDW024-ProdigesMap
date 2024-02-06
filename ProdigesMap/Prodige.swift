@@ -11,6 +11,7 @@ import FirebaseFirestore
 struct Prodige : Identifiable, Codable {
     @DocumentID var id: String?
     let name: String
+    let password: String
     let position: GeoPoint
     let tracked: Bool
 }
