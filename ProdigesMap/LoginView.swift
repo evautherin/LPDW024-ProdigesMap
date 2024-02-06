@@ -13,6 +13,8 @@ struct LoginView: View {
     @Environment(\.dismiss) var dismiss
     @State private var name = ""
     @State private var password = ""
+    @State private var badName = false
+    @State private var badPassword = false
 
     var body: some View {
         NavigationView {
@@ -27,13 +29,14 @@ struct LoginView: View {
                 Button("Se connecter") {
                     let foundProdige = model.prodiges
 //                        .filter { $0.name == name }
-                        .first(where: { $0.name == name })
+//                        .first(where: { $0.name == name })
+                        .first { $0.name == name }
                     
                     switch foundProdige {
                     case .none:
                         // S'enregistrer
                         print("*** S'enregistrer")
-                        break
+                        badName = true
                         
                     case .some(let foundProdige):
                         if foundProdige.password == password {
@@ -42,7 +45,8 @@ struct LoginView: View {
                         } else {
                             // Le password est mauvais
                             print("*** Le password est mauvais")
-                        }
+                            badPassword = true
+                       }
                     }
                 }
                 .padding()
@@ -59,6 +63,33 @@ struct LoginView: View {
                     }
                 }
             }
+            .alert(
+                "Nom introuvable...",
+                isPresented: $badName,
+                actions: {
+                    Button("Oui") {
+                        // Il faut créer le nouvel utilisateur + s'enregistrer avec !
+                    }
+                    Button("Non") {
+                        badName = false
+                    }
+                },
+                message: {
+                    Text("Le nom que vous avez entré n'a pas été trouvé. Souhaitez-vous créer un nouvel identifiant ?")
+                }
+            )
+            .alert(
+                "Mauvais mot de passe !",
+                isPresented: $badPassword,
+                actions: {
+                    Button("Ok") {
+                        badPassword = false
+                    }
+                },
+                message: {
+                    Text("Le mot de passe que vous avez entré n'est pas bon ! Veuillez réessayer...")
+                }
+            )
         }
         .navigationViewStyle(.stack)
     }
