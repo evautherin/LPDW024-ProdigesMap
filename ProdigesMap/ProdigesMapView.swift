@@ -36,6 +36,7 @@ struct ProdigesMapView: View {
             VStack {
                 Spacer()
                 HStack {
+                    Text("\(model.name)")
                     Spacer()
                     Button(action: {
                         newUserPresented.toggle()
@@ -60,7 +61,7 @@ struct ProdigesMapView: View {
 //            }
         }
         .sheet(isPresented: $newUserPresented) {
-            AddUserView()
+            LoginView()
         }
     }
 }

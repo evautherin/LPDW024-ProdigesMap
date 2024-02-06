@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct AddUserView: View {
+struct LoginView: View {
     @Environment(\.dismiss) var dismiss
 
     var body: some View {
@@ -18,5 +18,5 @@ struct AddUserView: View {
 }
 
 #Preview {
-    AddUserView()
+    LoginView()
 }
