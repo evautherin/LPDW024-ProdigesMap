@@ -8,6 +8,7 @@
 import Foundation
 import CoreLocation
 import SwiftUI
+import Combine
 import AsyncAlgorithms
 import AsyncExtensions
 import FirebaseFirestore
@@ -19,7 +20,8 @@ class ProdigesModel : NSObject {
 //        prodiges.filter { $0.tracked }
         prodiges.filter(\.tracked)
     }
-    var name = "User"
+    var currentProdige: Prodige?
+    var conditionDisplay = ""
     var initialEvent: CLMonitor.Event?
 
     static let shared = ProdigesModel()
@@ -31,6 +33,20 @@ class ProdigesModel : NSObject {
         
         manager.delegate = self
         manager.requestWhenInUseAuthorization()
+        
+        Task {
+            let db = Firestore.firestore()
+            let collection = db.collection("Prodiges")
+
+            for await currentID in UserDefaults.standard.observeKey(at: \.currentProdige) {
+                switch currentID {
+                case .none: print("No current user")
+                case .some(let currentID):
+                    let documentRef = collection.document(currentID)
+                    currentProdige = try? await documentRef.getDocument(as: Prodige.self)
+                }
+            }
+        }
         
         trackProdiges()
     }
@@ -78,7 +94,7 @@ extension ProdigesModel : CLLocationManagerDelegate {
                     }
                 }
                 for try await stateString in stateStrings {
-                    name = stateString
+                    conditionDisplay = stateString
                 }
 //                for try await event in events {
 //                    print("state:\(event.state), id:\(event.identifier), date:\(event.date)")
@@ -123,5 +139,17 @@ extension ProdigesModel {
                 }
                 print("Tracked Prodiges: \(self.prodiges)")
             }
+    }
+}
+
+
+extension UserDefaults {
+    @objc dynamic var currentProdige: String? { string(forKey: "CurrentProdige") }
+
+    typealias AsyncValues<T> = AsyncPublisher<AnyPublisher<T, Never>>
+    func observeKey<T>(at path: KeyPath<UserDefaults, T>) -> AsyncValues<T> {
+        return self.publisher(for: path, options: [.initial, .new])
+            .eraseToAnyPublisher()
+            .values
     }
 }

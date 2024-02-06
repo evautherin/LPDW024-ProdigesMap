@@ -36,7 +36,7 @@ struct ProdigesMapView: View {
             VStack {
                 Spacer()
                 HStack {
-                    Text("\(model.name)")
+                    Text("\(model.conditionDisplay)")
                     Spacer()
                     Button(action: {
                         newUserPresented.toggle()
