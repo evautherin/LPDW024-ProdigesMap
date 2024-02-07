@@ -41,6 +41,9 @@ struct ProdigesMapView: View {
                             .underline()
                             .bold()
                             .padding(.leading)
+                        Button("Start updates") {
+                            model.startLocationUpdates()
+                        }
                         Spacer()
                     }
                 }

@@ -40,6 +40,7 @@ class ProdigesModel : NSObject {
         }
     }
     var currentProdige: Prodige?
+    var monitor: CLMonitor?
     var updateTask: Task<(), Error>?
     var conditionDisplay = ""
     var initialEvent: CLMonitor.Event?
@@ -53,7 +54,7 @@ class ProdigesModel : NSObject {
         super.init()
         
         manager.delegate = self
-        manager.requestWhenInUseAuthorization()
+        manager.requestAlwaysAuthorization()
         
         setupCurrentProdige()
         
@@ -69,25 +70,25 @@ class ProdigesModel : NSObject {
 extension ProdigesModel : CLLocationManagerDelegate {
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
         print("\(manager.authorizationStatus)")
-        if manager.authorizationStatus == .authorizedWhenInUse {
-//            locationUpdates()
+        if [.authorizedWhenInUse, .authorizedAlways].contains(manager.authorizationStatus) {
+            if let _ = monitor { return }
             
             Task {
-                let monitor = await CLMonitor("monitorName")
+                monitor = await CLMonitor("monitorName")
                 let condition = CLMonitor.CircularGeographicCondition(
                     center: center,
                     radius: 2000.0
                 )
-                await monitor.add(condition, identifier: "Condition")
+                await monitor!.add(condition, identifier: "Condition")
                 
-                let identifiers = await monitor.identifiers
+                let identifiers = await monitor!.identifiers
                 for identifier in identifiers {
-                    if let record = await monitor.record(for: identifier) {
+                    if let record = await monitor!.record(for: identifier) {
                         initialEvent = record.lastEvent
                     }
                 }
                 
-                let futureEvents = await monitor.events
+                let futureEvents = await monitor!.events
                 
                 let allEvents = switch initialEvent {
                 case .some(let initialEvent): chain(AsyncJustSequence(initialEvent), futureEvents).eraseToAnyAsyncSequence()
@@ -145,7 +146,7 @@ extension ProdigesModel {
             print("*** Start update task")
             let updates = CLLocationUpdate.liveUpdates()
             for try await update in updates {
-                guard let currentId, let currentProdige else { continue }
+                guard let currentId, let _ = currentProdige else { continue }
                 
                 if let location = update.location {
                     print(location)
@@ -164,24 +165,24 @@ extension ProdigesModel {
         updateTask = .none
     }
     
-    func locationUpdates() {
-        Task {
-            defer { }
-            let updates = CLLocationUpdate.liveUpdates()
-            for try await update in updates {
-                guard let currentId, let currentProdige, currentProdige.tracked else { continue }
-                
-                if let location = update.location {
-                    print(location)
-                    let position = GeoPoint(
-                        latitude: location.coordinate.latitude,
-                        longitude: location.coordinate.longitude
-                    )
-                    updateProdige(id: currentId, values: ["position": position])
-                }
-            }
-        }
-    }
+//    func locationUpdates() {
+//        Task {
+//            defer { }
+//            let updates = CLLocationUpdate.liveUpdates()
+//            for try await update in updates {
+//                guard let currentId, let currentProdige, currentProdige.tracked else { continue }
+//                
+//                if let location = update.location {
+//                    print(location)
+//                    let position = GeoPoint(
+//                        latitude: location.coordinate.latitude,
+//                        longitude: location.coordinate.longitude
+//                    )
+//                    updateProdige(id: currentId, values: ["position": position])
+//                }
+//            }
+//        }
+//    }
         
     func updateProdige(id: String, values: [AnyHashable: Any]) {
         prodigesCollection.document(id).updateData(values)
