@@ -34,6 +34,16 @@ struct ProdigesMapView: View {
                 }
             }
             VStack {
+                if let currentProdige = model.currentProdige {
+                    HStack {
+                        Text(currentProdige.name)
+                            .font(.largeTitle)
+                            .underline()
+                            .bold()
+                            .padding(.leading)
+                        Spacer()
+                    }
+                }
                 Spacer()
                 HStack {
                     Text("\(model.conditionDisplay)")

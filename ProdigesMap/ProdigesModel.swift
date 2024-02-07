@@ -32,6 +32,7 @@ class ProdigesModel : NSObject {
                 let prodige = try? document?.data(as: Prodige.self)
                 self.currentProdige = prodige
                 print("*** Current Prodige: \(String(describing: prodige))")
+                UserDefaults.standard.set(currentId, forKey: "currentId")
             }
 
         }
@@ -51,37 +52,14 @@ class ProdigesModel : NSObject {
         manager.delegate = self
         manager.requestWhenInUseAuthorization()
         
-//        Task {
-//            var currentListener: ListenerRegistration?
-//            for await currentId in UserDefaults.standard.observeKey(at: \.currentProdige) {
-//                switch currentId {
-//                case .none: print("No current one!")
-//                case .some(let currentID):
-//                    if let listener = currentListener {
-//                        listener.remove()
-//                        currentListener = nil
-//                    }
-//                    currentListener = prodigesCollection.whereField("id", isEqualTo: currentID).addSnapshotListener { querySnapshot, error in
-//                        guard let documents = querySnapshot?.documents else {
-//                            print("Error fetching documents: \(error!)")
-//                            return
-//                        }
-//                        do {
-//                            let currentProdige = try documents.compactMap { try $0.data(as: Prodige.self) }.first
-//                            print("*** Current Prodige: \(String(describing: currentProdige))")
-//                            self.currentProdige = currentProdige
-//                        } catch {
-//                            print("Error deserializing documents: \(error)")
-//                        }
-//                        
-//                    }
-//                }
-//            }
-//        }
+        setupCurrentProdige()
         
         trackProdiges()
     }
     
+    func setupCurrentProdige() {
+        currentId = UserDefaults.standard.string(forKey: "currentId")
+    }
 }
 
 
