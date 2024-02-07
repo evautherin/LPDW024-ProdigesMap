@@ -33,11 +33,14 @@ class ProdigesModel : NSObject {
                 self.currentProdige = prodige
                 print("*** Current Prodige: \(String(describing: prodige))")
                 UserDefaults.standard.set(currentId, forKey: "currentId")
+                
+                
             }
 
         }
     }
     var currentProdige: Prodige?
+    var updateTask: Task<(), Error>?
     var conditionDisplay = ""
     var initialEvent: CLMonitor.Event?
 
@@ -67,6 +70,8 @@ extension ProdigesModel : CLLocationManagerDelegate {
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
         print("\(manager.authorizationStatus)")
         if manager.authorizationStatus == .authorizedWhenInUse {
+//            locationUpdates()
+            
             Task {
                 let monitor = await CLMonitor("monitorName")
                 let condition = CLMonitor.CircularGeographicCondition(
@@ -81,51 +86,34 @@ extension ProdigesModel : CLLocationManagerDelegate {
                         initialEvent = record.lastEvent
                     }
                 }
-//                identifiers.forEach {
-//                    print("Condition: \(await monitor.record(for: $0).debugDescription)")
-//                }
                 
-                let events = await monitor.events
+                let futureEvents = await monitor.events
                 
                 let allEvents = switch initialEvent {
-                case .some(let initialEvent): chain(AsyncJustSequence(initialEvent), events).eraseToAnyAsyncSequence()
-                case .none: events.eraseToAnyAsyncSequence()
+                case .some(let initialEvent): chain(AsyncJustSequence(initialEvent), futureEvents).eraseToAnyAsyncSequence()
+                case .none: futureEvents.eraseToAnyAsyncSequence()
                 }
                 
-                let stateStrings = allEvents
-                    .map { event in
-                    return switch event.state {
-                    case .unknown: "unknown"
-                    case .satisfied: "satisfied"
-                    case .unsatisfied: "unsatisfied"
-                    case .unmonitored: "unmonitored"
-                    @unknown default: "unknown default"
-                    }
-                }
-                for try await stateString in stateStrings {
-                    conditionDisplay = stateString
-                }
-//                for try await event in events {
-//                    print("state:\(event.state), id:\(event.identifier), date:\(event.date)")
-//                    switch event.state {
-//                        
-//                    case .unknown:
-//                        name = "unknown"
-//                        
-//                    case .satisfied:
-//                        name = "satisfied"
-//
-//                    case .unsatisfied:
-//                        name = "unsatisfied"
-//
-//                    case .unmonitored:
-//                        name = "unmonitored"
-//
-//                    @unknown default:
-//                        name = "unknown default"
-//
+//                let stateStrings = allEvents
+//                    .map { event in
+//                    return switch event.state {
+//                    case .unknown: "unknown"
+//                    case .satisfied: "satisfied"
+//                    case .unsatisfied: "unsatisfied"
+//                    case .unmonitored: "unmonitored"
+//                    @unknown default: "unknown default"
 //                    }
 //                }
+                for try await event in allEvents {
+                    guard let currentId else { return }
+
+                    let tracked = switch event.state {
+                    case .satisfied: true
+                    default: false
+                    }
+                    updateProdige(id: currentId, values: ["tracked": tracked])
+                    tracked ? startLocationUpdates() : stopLocationUpdates()
+                }
             }
         }
     }
@@ -150,24 +138,55 @@ extension ProdigesModel {
             }
     }
     
-    func locationUpdates() {
-            Task {
-                let updates = CLLocationUpdate.liveUpdates()
-                for try await update in updates {
-                    if let loggedInProdigeId = currentProdige?.id {
-                        if let location = update.location {
-                            print(location)
-                            let position = GeoPoint(latitude: location.coordinate.latitude, longitude: location.coordinate.longitude)
-                            updateProdige(id: loggedInProdigeId, values: ["position": position])
-                        }
-                    }
+    func startLocationUpdates() {
+        updateTask = Task {
+            defer { print("*** End update task") }
+            
+            print("*** Start update task")
+            let updates = CLLocationUpdate.liveUpdates()
+            for try await update in updates {
+                guard let currentId, let currentProdige else { continue }
+                
+                if let location = update.location {
+                    print(location)
+                    let position = GeoPoint(
+                        latitude: location.coordinate.latitude,
+                        longitude: location.coordinate.longitude
+                    )
+                    updateProdige(id: currentId, values: ["position": position])
                 }
             }
         }
+    }
+    
+    func stopLocationUpdates() {
+        updateTask?.cancel()
+        updateTask = .none
+    }
+    
+    func locationUpdates() {
+        Task {
+            defer { }
+            let updates = CLLocationUpdate.liveUpdates()
+            for try await update in updates {
+                guard let currentId, let currentProdige, currentProdige.tracked else { continue }
+                
+                if let location = update.location {
+                    print(location)
+                    let position = GeoPoint(
+                        latitude: location.coordinate.latitude,
+                        longitude: location.coordinate.longitude
+                    )
+                    updateProdige(id: currentId, values: ["position": position])
+                }
+            }
+        }
+    }
         
-        func updateProdige(id: String, values: [AnyHashable: Any]) {
-            prodigesCollection.document(id).updateData(values)
-        }}
+    func updateProdige(id: String, values: [AnyHashable: Any]) {
+        prodigesCollection.document(id).updateData(values)
+    }
+}
 
 
 //extension UserDefaults {
