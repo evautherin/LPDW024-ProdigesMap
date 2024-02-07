@@ -20,6 +20,35 @@ class ProdigesModel : NSObject {
 //        prodiges.filter { $0.tracked }
         prodiges.filter(\.tracked)
     }
+    var currentListener: ListenerRegistration?
+    @ObservationIgnored var currentId: String? {
+        didSet {
+            if let listener = currentListener {
+                listener.remove()
+            }
+            guard let currentId = currentId else { return }
+            
+            currentListener = prodigesCollection.document(currentId).addSnapshotListener { querySnapshot, error in
+                let prodige = try? querySnapshot?.data(as: Prodige.self)
+                self.currentProdige = prodige
+                print("*** Current Prodige: \(String(describing: prodige))")
+//                guard let document = querySnapshot?. else {
+//                    print("Error fetching documents: \(error!)")
+//                    return
+//                }
+//                do {
+//                    let currentProdiges = try documents.compactMap { try $0.data(as: Prodige.self) }
+//                    let currentProdige = currentProdiges.first
+//                    print("*** Current Prodige: \(String(describing: currentProdige))")
+//                    self.currentProdige = currentProdige
+//                } catch {
+//                    print("Error deserializing documents: \(error)")
+//                }
+                
+            }
+
+        }
+    }
     var currentProdige: Prodige?
     var conditionDisplay = ""
     var initialEvent: CLMonitor.Event?
@@ -27,6 +56,7 @@ class ProdigesModel : NSObject {
     static let shared = ProdigesModel()
     let center = CLLocationCoordinate2D(latitude: 48.9355351, longitude: 2.3030026)
     private let manager = CLLocationManager()
+    let prodigesCollection = Firestore.firestore().collection("Prodiges")
 
     override init() {
         super.init()
@@ -34,19 +64,33 @@ class ProdigesModel : NSObject {
         manager.delegate = self
         manager.requestWhenInUseAuthorization()
         
-        Task {
-            let db = Firestore.firestore()
-            let collection = db.collection("Prodiges")
-
-            for await currentID in UserDefaults.standard.observeKey(at: \.currentProdige) {
-                switch currentID {
-                case .none: print("No current user")
-                case .some(let currentID):
-                    let documentRef = collection.document(currentID)
-                    currentProdige = try? await documentRef.getDocument(as: Prodige.self)
-                }
-            }
-        }
+//        Task {
+//            var currentListener: ListenerRegistration?
+//            for await currentId in UserDefaults.standard.observeKey(at: \.currentProdige) {
+//                switch currentId {
+//                case .none: print("No current one!")
+//                case .some(let currentID):
+//                    if let listener = currentListener {
+//                        listener.remove()
+//                        currentListener = nil
+//                    }
+//                    currentListener = prodigesCollection.whereField("id", isEqualTo: currentID).addSnapshotListener { querySnapshot, error in
+//                        guard let documents = querySnapshot?.documents else {
+//                            print("Error fetching documents: \(error!)")
+//                            return
+//                        }
+//                        do {
+//                            let currentProdige = try documents.compactMap { try $0.data(as: Prodige.self) }.first
+//                            print("*** Current Prodige: \(String(describing: currentProdige))")
+//                            self.currentProdige = currentProdige
+//                        } catch {
+//                            print("Error deserializing documents: \(error)")
+//                        }
+//                        
+//                    }
+//                }
+//            }
+//        }
         
         trackProdiges()
     }
@@ -140,16 +184,56 @@ extension ProdigesModel {
                 print("Tracked Prodiges: \(self.prodiges)")
             }
     }
-}
+    
+    func locationUpdates() {
+            Task {
+                let updates = CLLocationUpdate.liveUpdates()
+                for try await update in updates {
+                    if let loggedInProdigeId = currentProdige?.id {
+                        if let location = update.location {
+                            print(location)
+                            let position = GeoPoint(latitude: location.coordinate.latitude, longitude: location.coordinate.longitude)
+                            updateProdige(id: loggedInProdigeId, values: ["position": position])
+                        }
+                    }
+                }
+            }
+        }
+        
+        func updateProdige(id: String, values: [AnyHashable: Any]) {
+            prodigesCollection.document(id).updateData(values)
+        }}
 
 
-extension UserDefaults {
-    @objc dynamic var currentProdige: String? { string(forKey: "CurrentProdige") }
-
-    typealias AsyncValues<T> = AsyncPublisher<AnyPublisher<T, Never>>
-    func observeKey<T>(at path: KeyPath<UserDefaults, T>) -> AsyncValues<T> {
-        return self.publisher(for: path, options: [.initial, .new])
-            .eraseToAnyPublisher()
-            .values
-    }
-}
+//extension UserDefaults {
+//    @objc dynamic var currentProdige: String? {
+//        let value = string(forKey: "CurrentProdige")
+//        print("*** value: \(String(describing: value))")
+//        return value
+//    }
+//
+//    typealias AsyncValues<T> = AsyncPublisher<AnyPublisher<T, Never>>
+//    func observeKey<T>(at path: KeyPath<UserDefaults, T>) -> AsyncValues<T> {
+//        return self.publisher(for: path, options: [.initial, .new])
+//            .print("*** observeKey")
+//            .eraseToAnyPublisher()
+//            .values
+//    }
+//
+//    func setId(_ id: String, forKey key: String) {
+//        set(id, forKey: key)
+//        let value = UserDefaults.standard.string(forKey: key)
+//        print("*** \(key): \(String(describing: value))")
+////        if let encoded = try? JSONEncoder().encode(id) {
+////            set(encoded, forKey: key)
+////        }
+//    }
+//
+////    func getId(forKey key: String) -> String? {
+////        if let data = data(forKey: key),
+////           let id = try? JSONDecoder().decode(String.self, from: data) {
+////            return id
+////        }
+////        return nil
+////    }
+//}

@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import FirebaseFirestore
 
 struct LoginView: View {
     let model = ProdigesModel.shared
@@ -42,7 +43,10 @@ struct LoginView: View {
                         if foundProdige.password == password {
                             // J'ai le bon prodige
                             print("*** J'ai le bon prodige")
-                        } else {
+                            model.currentId = foundProdige.id!
+//                            UserDefaults.standard.setId(foundProdige.id!, forKey: "CurrentProdige")
+                            dismiss()
+                       } else {
                             // Le password est mauvais
                             print("*** Le password est mauvais")
                             badPassword = true
@@ -69,6 +73,10 @@ struct LoginView: View {
                 actions: {
                     Button("Oui") {
                         // Il faut créer le nouvel utilisateur + s'enregistrer avec !
+                        Task {
+                            await registerNewProdige()
+                        }
+                        dismiss()
                     }
                     Button("Non") {
                         badName = false
@@ -93,7 +101,24 @@ struct LoginView: View {
         }
         .navigationViewStyle(.stack)
     }
-}
+    
+    func registerNewProdige() async {
+         let position = GeoPoint(latitude: 0, longitude: 0)
+         do {
+             let ref = try await ProdigesModel.shared.prodigesCollection.addDocument(data: [
+                 "name": name,
+                 "password": password,
+                 "position": position,
+                 "tracked": false
+             ])
+             print("Document added with ID: \(ref.documentID)")
+             model.currentId = ref.documentID
+//             UserDefaults.standard.setId(ref.documentID, forKey: "CurrentProdige")
+         } catch {
+             print("Error adding document: \(error.localizedDescription)")
+         }
+         badName = false
+     }}
 
 
 #Preview {
