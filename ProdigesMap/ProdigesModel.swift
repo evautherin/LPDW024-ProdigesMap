@@ -26,25 +26,12 @@ class ProdigesModel : NSObject {
             if let listener = currentListener {
                 listener.remove()
             }
-            guard let currentId = currentId else { return }
+            guard let currentId else { return }
             
-            currentListener = prodigesCollection.document(currentId).addSnapshotListener { querySnapshot, error in
-                let prodige = try? querySnapshot?.data(as: Prodige.self)
+            currentListener = prodigesCollection.document(currentId).addSnapshotListener { document, error in
+                let prodige = try? document?.data(as: Prodige.self)
                 self.currentProdige = prodige
                 print("*** Current Prodige: \(String(describing: prodige))")
-//                guard let document = querySnapshot?. else {
-//                    print("Error fetching documents: \(error!)")
-//                    return
-//                }
-//                do {
-//                    let currentProdiges = try documents.compactMap { try $0.data(as: Prodige.self) }
-//                    let currentProdige = currentProdiges.first
-//                    print("*** Current Prodige: \(String(describing: currentProdige))")
-//                    self.currentProdige = currentProdige
-//                } catch {
-//                    print("Error deserializing documents: \(error)")
-//                }
-                
             }
 
         }
