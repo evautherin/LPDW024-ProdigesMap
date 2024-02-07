@@ -25,12 +25,12 @@ struct ProdigesMapView: View {
     var body: some View {
         ZStack {
             Map(initialPosition: MapCameraPosition.region(position)) {
-                ForEach(model.trackedProdiges) { prodige in
+                ForEach(model.prodiges.filter(\.tracked)) { trackedProdige in
                     let location = CLLocationCoordinate2D(
-                        latitude: prodige.position.latitude,
-                        longitude: prodige.position.longitude
+                        latitude: trackedProdige.position.latitude,
+                        longitude: trackedProdige.position.longitude
                     )
-                    Marker(prodige.name, systemImage: "person.circle", coordinate: location)
+                    Marker(trackedProdige.name, systemImage: "person.circle", coordinate: location)
                 }
             }
             VStack {
@@ -49,7 +49,6 @@ struct ProdigesMapView: View {
                 }
                 Spacer()
                 HStack {
-                    Text("\(model.conditionDisplay)")
                     Spacer()
                     Button(action: {
                         newUserPresented.toggle()
@@ -66,12 +65,6 @@ struct ProdigesMapView: View {
                     }
                 }
             }
-//            VStack {
-//                Text("\(model.name)")
-//                Button("Test") {
-//                    model.trackProdiges()
-//                }
-//            }
         }
         .sheet(isPresented: $newUserPresented) {
             LoginView()

@@ -15,40 +15,32 @@ import FirebaseFirestore
 
 @Observable
 class ProdigesModel : NSObject {
-    var prodiges = [Prodige]()
-    var trackedProdiges: [Prodige] {
-//        prodiges.filter { $0.tracked }
-        prodiges.filter(\.tracked)
-    }
-    var currentListener: ListenerRegistration?
-    @ObservationIgnored var currentId: String? {
-        didSet {
-            if let listener = currentListener {
-                listener.remove()
-            }
-            guard let currentId else { return }
-            
-            currentListener = prodigesCollection.document(currentId).addSnapshotListener { document, error in
-                let prodige = try? document?.data(as: Prodige.self)
-                self.currentProdige = prodige
-                print("*** Current Prodige: \(String(describing: prodige))")
-                UserDefaults.standard.set(currentId, forKey: "currentId")
-                
-                
-            }
-
-        }
-    }
-    var currentProdige: Prodige?
-    var monitor: CLMonitor?
-    var updateTask: Task<(), Error>?
-    var conditionDisplay = ""
-    var initialEvent: CLMonitor.Event?
-
     static let shared = ProdigesModel()
+
+    var prodiges = [Prodige]()
+    var currentProdige: Prodige?
+
+
     let center = CLLocationCoordinate2D(latitude: 48.9355351, longitude: 2.3030026)
     private let manager = CLLocationManager()
-    let prodigesCollection = Firestore.firestore().collection("Prodiges")
+    private let prodigesCollection = Firestore.firestore().collection("Prodiges")
+
+    private var currentProdigeListener: ListenerRegistration?
+    @ObservationIgnored private var currentId: String? {
+        didSet {
+            listenCurrentProdige()
+            monitorCurrentId()
+        }
+    }
+    
+    private var monitorCurrentIdTask: Task<(), Error>?
+    @ObservationIgnored private var monitor: CLMonitor? {
+        didSet {
+            monitorCurrentId()
+        }
+    }
+    
+    private var locationUpdateTask: Task<(), Error>?
 
     override init() {
         super.init()
@@ -56,17 +48,21 @@ class ProdigesModel : NSObject {
         manager.delegate = self
         manager.requestAlwaysAuthorization()
         
-        setupCurrentProdige()
-        
-        trackProdiges()
+        initCurrentId()
+        listenProdiges()
     }
     
-    func setupCurrentProdige() {
-        currentId = UserDefaults.standard.string(forKey: "currentId")
+    func setCurrentId(currentId: String?) {
+        self.currentId = currentId
+        UserDefaults.standard.set(currentId, forKey: "currentId")
+    }
+    
+    func initCurrentId() {
+        self.currentId = UserDefaults.standard.string(forKey: "currentId")
     }
 }
 
-
+// MARK: Core Location
 extension ProdigesModel : CLLocationManagerDelegate {
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
         print("\(manager.authorizationStatus)")
@@ -74,79 +70,59 @@ extension ProdigesModel : CLLocationManagerDelegate {
             if let _ = monitor { return }
             
             Task {
-                monitor = await CLMonitor("monitorName")
+                let monitor = await CLMonitor("monitorName")
                 let condition = CLMonitor.CircularGeographicCondition(
                     center: center,
                     radius: 2000.0
                 )
-                await monitor!.add(condition, identifier: "Condition")
-                
-                let identifiers = await monitor!.identifiers
-                for identifier in identifiers {
-                    if let record = await monitor!.record(for: identifier) {
-                        initialEvent = record.lastEvent
-                    }
-                }
-                
-                let futureEvents = await monitor!.events
-                
-                let allEvents = switch initialEvent {
-                case .some(let initialEvent): chain(AsyncJustSequence(initialEvent), futureEvents).eraseToAnyAsyncSequence()
-                case .none: futureEvents.eraseToAnyAsyncSequence()
-                }
-                
-//                let stateStrings = allEvents
-//                    .map { event in
-//                    return switch event.state {
-//                    case .unknown: "unknown"
-//                    case .satisfied: "satisfied"
-//                    case .unsatisfied: "unsatisfied"
-//                    case .unmonitored: "unmonitored"
-//                    @unknown default: "unknown default"
-//                    }
-//                }
-                for try await event in allEvents {
-                    guard let currentId else { return }
-
-                    let tracked = switch event.state {
-                    case .satisfied: true
-                    default: false
-                    }
-                    updateProdige(id: currentId, values: ["tracked": tracked])
-                    tracked ? startLocationUpdates() : stopLocationUpdates()
-                }
+                await monitor.add(condition, identifier: "Condition")
+                self.monitor = monitor
             }
         }
     }
 
-}
+    func monitorCurrentId() {
+        monitorCurrentIdTask?.cancel()
+        monitorCurrentIdTask = .none
+        
+        guard let monitor, let currentId else { return }
 
-extension ProdigesModel {
-    func trackProdiges() {
-        let db = Firestore.firestore()
-        db.collection("Prodiges") // .whereField("tracked", isEqualTo: true)
-            .addSnapshotListener { querySnapshot, error in
-                guard let documents = querySnapshot?.documents else {
-                    print("Error fetching documents: \(error!)")
-                    return
+        monitorCurrentIdTask = Task {
+            var initialEvent: CLMonitor.Event?
+
+            let identifiers = await monitor.identifiers
+            for identifier in identifiers {
+                if let record = await monitor.record(for: identifier) {
+                    initialEvent = record.lastEvent
                 }
-                do {
-                    self.prodiges = try documents.compactMap { try $0.data(as: Prodige.self) }
-                } catch {
-                    print("Error deserializing documents: \(error)")
-                }
-                print("Tracked Prodiges: \(self.prodiges)")
             }
+            
+            let futureEvents = await monitor.events
+            
+            let allEvents = switch initialEvent {
+            case .some(let initialEvent): chain(AsyncJustSequence(initialEvent), futureEvents).eraseToAnyAsyncSequence()
+            case .none: futureEvents.eraseToAnyAsyncSequence()
+            }
+
+            for try await event in allEvents {
+                let tracked = switch event.state {
+                case .satisfied: true
+                default: false
+                }
+                updateProdige(id: currentId, values: ["tracked": tracked])
+                tracked ? startLocationUpdates() : stopLocationUpdates()
+            }
+        }
     }
     
     func startLocationUpdates() {
-        updateTask = Task {
+        locationUpdateTask = Task {
             defer { print("*** End update task") }
             
             print("*** Start update task")
             let updates = CLLocationUpdate.liveUpdates()
             for try await update in updates {
-                guard let currentId, let _ = currentProdige else { continue }
+                guard let currentId else { continue }
                 
                 if let location = update.location {
                     print(location)
@@ -161,31 +137,60 @@ extension ProdigesModel {
     }
     
     func stopLocationUpdates() {
-        updateTask?.cancel()
-        updateTask = .none
+        locationUpdateTask?.cancel()
+        locationUpdateTask = .none
+    }
+}
+
+// MARK: FireBase synchronization
+extension ProdigesModel {
+    func listenProdiges() {
+        prodigesCollection // .whereField("tracked", isEqualTo: true)
+            .addSnapshotListener { querySnapshot, error in
+                guard let documents = querySnapshot?.documents else {
+                    print("Error fetching documents: \(error!)")
+                    return
+                }
+                do {
+                    self.prodiges = try documents.compactMap { try $0.data(as: Prodige.self) }
+                } catch {
+                    print("Error deserializing documents: \(error)")
+                }
+                print("Tracked Prodiges: \(self.prodiges)")
+            }
     }
     
-//    func locationUpdates() {
-//        Task {
-//            defer { }
-//            let updates = CLLocationUpdate.liveUpdates()
-//            for try await update in updates {
-//                guard let currentId, let currentProdige, currentProdige.tracked else { continue }
-//                
-//                if let location = update.location {
-//                    print(location)
-//                    let position = GeoPoint(
-//                        latitude: location.coordinate.latitude,
-//                        longitude: location.coordinate.longitude
-//                    )
-//                    updateProdige(id: currentId, values: ["position": position])
-//                }
-//            }
-//        }
-//    }
+    func listenCurrentProdige() {
+        currentProdigeListener?.remove()
+        currentProdigeListener = .none
+
+        guard let currentId else { return }
         
+        currentProdigeListener = prodigesCollection.document(currentId).addSnapshotListener { document, error in
+            let prodige = try? document?.data(as: Prodige.self)
+            self.currentProdige = prodige
+            print("*** Current Prodige is now: \(String(describing: prodige))")
+        }
+    }
+
     func updateProdige(id: String, values: [AnyHashable: Any]) {
         prodigesCollection.document(id).updateData(values)
+    }
+    
+    func registerNewProdige(name: String, password: String) async {
+        let position = GeoPoint(latitude: 0, longitude: 0)
+        do {
+            let ref = try await ProdigesModel.shared.prodigesCollection.addDocument(data: [
+                "name": name,
+                "password": password,
+                "position": position,
+                "tracked": false
+            ])
+            print("Document added with ID: \(ref.documentID)")
+            currentId = ref.documentID
+        } catch {
+            print("Error adding document: \(error.localizedDescription)")
+        }
     }
 }
 

@@ -6,17 +6,16 @@
 //
 
 import SwiftUI
-import FirebaseFirestore
 
 struct LoginView: View {
     let model = ProdigesModel.shared
-
+    
     @Environment(\.dismiss) var dismiss
     @State private var name = ""
     @State private var password = ""
     @State private var badName = false
     @State private var badPassword = false
-
+    
     var body: some View {
         NavigationView {
             VStack {
@@ -29,8 +28,8 @@ struct LoginView: View {
                 
                 Button("Se connecter") {
                     let foundProdige = model.prodiges
-//                        .filter { $0.name == name }
-//                        .first(where: { $0.name == name })
+                    //                        .filter { $0.name == name }
+                    //                        .first(where: { $0.name == name })
                         .first { $0.name == name }
                     
                     switch foundProdige {
@@ -43,14 +42,13 @@ struct LoginView: View {
                         if foundProdige.password == password {
                             // J'ai le bon prodige
                             print("*** J'ai le bon prodige")
-                            model.currentId = foundProdige.id!
-//                            UserDefaults.standard.setId(foundProdige.id!, forKey: "CurrentProdige")
+                            model.setCurrentId(currentId: foundProdige.id)
                             dismiss()
-                       } else {
+                        } else {
                             // Le password est mauvais
                             print("*** Le password est mauvais")
                             badPassword = true
-                       }
+                        }
                     }
                 }
                 .padding()
@@ -74,7 +72,8 @@ struct LoginView: View {
                     Button("Oui") {
                         // Il faut créer le nouvel utilisateur + s'enregistrer avec !
                         Task {
-                            await registerNewProdige()
+                            await model.registerNewProdige(name: name, password: password)
+                            badName = false
                         }
                         dismiss()
                     }
@@ -101,24 +100,7 @@ struct LoginView: View {
         }
         .navigationViewStyle(.stack)
     }
-    
-    func registerNewProdige() async {
-         let position = GeoPoint(latitude: 0, longitude: 0)
-         do {
-             let ref = try await ProdigesModel.shared.prodigesCollection.addDocument(data: [
-                 "name": name,
-                 "password": password,
-                 "position": position,
-                 "tracked": false
-             ])
-             print("Document added with ID: \(ref.documentID)")
-             model.currentId = ref.documentID
-//             UserDefaults.standard.setId(ref.documentID, forKey: "CurrentProdige")
-         } catch {
-             print("Error adding document: \(error.localizedDescription)")
-         }
-         badName = false
-     }}
+}
 
 
 #Preview {
