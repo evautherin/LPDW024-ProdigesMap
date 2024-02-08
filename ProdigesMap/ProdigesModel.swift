@@ -54,7 +54,11 @@ class ProdigesModel : NSObject {
     
     func setCurrentId(currentId: String?) {
         self.currentId = currentId
-        UserDefaults.standard.set(currentId, forKey: "currentId")
+        if let currentId {
+            UserDefaults.standard.set(currentId, forKey: "currentId")
+        } else {
+            UserDefaults.standard.removeObject(forKey: "currentId")
+        }
     }
     
     func initCurrentId() {
@@ -190,7 +194,7 @@ extension ProdigesModel {
                 "tracked": false
             ])
             print("Document added with ID: \(ref.documentID)")
-            currentId = ref.documentID
+            setCurrentId(currentId: ref.documentID)
         } catch {
             print("Error adding document: \(error.localizedDescription)")
         }
