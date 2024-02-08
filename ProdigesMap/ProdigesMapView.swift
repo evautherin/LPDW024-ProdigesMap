@@ -64,6 +64,7 @@ struct ProdigesMapView: View {
                             .padding(.top)
                     }
                 }
+                Text(model.locationUpdateDisplay)
             }
         }
         .sheet(isPresented: $newUserPresented) {

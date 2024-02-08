@@ -12,6 +12,7 @@ import Combine
 import AsyncAlgorithms
 import AsyncExtensions
 import FirebaseFirestore
+import UserNotifications
 
 @Observable
 class ProdigesModel : NSObject {
@@ -19,6 +20,7 @@ class ProdigesModel : NSObject {
 
     var prodiges = [Prodige]()
     var currentProdige: Prodige?
+    var locationUpdateDisplay = ""
 
 
     let center = CLLocationCoordinate2D(latitude: 48.9355351, longitude: 2.3030026)
@@ -41,9 +43,12 @@ class ProdigesModel : NSObject {
     }
     
     private var locationUpdateTask: Task<(), Error>?
+    private var notificationAuthorized = false
 
     override init() {
         super.init()
+        
+        initNotifications()
         
         manager.delegate = self
         manager.requestAlwaysAuthorization()
@@ -120,6 +125,7 @@ extension ProdigesModel : CLLocationManagerDelegate {
     }
     
     func startLocationUpdates() {
+        displayStartUpdateNotification()
         locationUpdateTask = Task {
             defer { print("*** End update task") }
             
@@ -141,6 +147,7 @@ extension ProdigesModel : CLLocationManagerDelegate {
     }
     
     func stopLocationUpdates() {
+        displayStopUpdateNotification()
         locationUpdateTask?.cancel()
         locationUpdateTask = .none
     }
@@ -197,6 +204,62 @@ extension ProdigesModel {
             setCurrentId(currentId: ref.documentID)
         } catch {
             print("Error adding document: \(error.localizedDescription)")
+        }
+    }
+}
+
+// MARK: Notifications
+extension ProdigesModel {
+    enum Notification {
+        case localisationUpdateStarted
+        case localisationUpdateStopped
+        
+        var identifier: String {
+            switch self {
+            case .localisationUpdateStarted: "localisationUpdateStarted"
+            case .localisationUpdateStopped: "localisationUpdateStopped"
+            }
+        }
+        var title: String {
+            "Localisation"
+        }
+        var body: String {
+            switch self {
+            case .localisationUpdateStarted:
+                "Votre position est actuellement utilisée parce que vous êtes autour de la Fac."
+            case .localisationUpdateStopped:
+                "Votre position n'est plus utilisée parce que vous êtes éloigné de la Fac."
+            }
+        }
+    }
+    
+    func initNotifications() {
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound]) { result, error in
+            self.notificationAuthorized = result
+        }
+    }
+    
+    func displayStartUpdateNotification() {
+        plainUpdateNotification(.localisationUpdateStarted)
+    }
+    
+    func displayStopUpdateNotification() {
+        plainUpdateNotification(.localisationUpdateStopped)
+
+    }
+    
+    private func plainUpdateNotification(_ notification: Notification) {
+        locationUpdateDisplay = notification.body
+        
+        Task {
+            repeat {} while !notificationAuthorized
+            
+            let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 0.1, repeats: false)
+            let content = UNMutableNotificationContent()
+            content.title = notification.title
+            content.body = notification.body
+            let request = UNNotificationRequest(identifier: notification.identifier, content: content, trigger: trigger)
+            let _ = try await UNUserNotificationCenter.current().add(request)
         }
     }
 }
