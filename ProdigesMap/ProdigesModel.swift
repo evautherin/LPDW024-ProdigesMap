@@ -164,7 +164,10 @@ extension ProdigesModel {
         currentProdigeListener?.remove()
         currentProdigeListener = .none
 
-        guard let currentId else { return }
+        guard let currentId else {
+            self.currentProdige = .none
+            return
+        }
         
         currentProdigeListener = prodigesCollection.document(currentId).addSnapshotListener { document, error in
             let prodige = try? document?.data(as: Prodige.self)
